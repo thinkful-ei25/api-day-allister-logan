@@ -8,7 +8,7 @@ const api = (function(){
     $.getJSON(`${BASE_URL}/items`, callback);
   }
 
-  function createItem(name, callback) {
+  function createItem(name, ifError ,callback) {
     let newItem = JSON.stringify({
       name
     });
@@ -17,24 +17,37 @@ const api = (function(){
       method: 'POST',
       contentType: 'application/JSON',
       data: newItem,
-      success: callback
+      success: callback,
+      error: ifError
     });
   }
 
-  function updateItem(id, updateData, callback){
+  function updateItem(id, updateData, ifError ,callback){
     let updateItem = JSON.stringify(updateData);
     $.ajax({
       url: `${BASE_URL}/items/${id}`,
       method: 'PATCH',
       contentType: 'application/json',
       data: updateItem,
-      success: callback
+      success: callback,
+      error: ifError
+    });
+  }
+
+  function deleteItem(id, ifError, callback){
+    $.ajax({
+      url: `${BASE_URL}/items/${id}`,
+      method: 'DELETE',
+      contentType: 'application/json',
+      success: callback,
+      error: ifError
     });
   }
 
   return{
     getItems,
     createItem,
-    updateItem
+    updateItem,
+    deleteItem
   };
 }());

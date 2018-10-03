@@ -55,7 +55,12 @@ const shoppingList = (function(){
     // render the shopping list in the DOM
     console.log('`render` ran');
     const shoppingListItemsString = generateShoppingItemsString(items);
-  
+    
+    // display error
+    if(store.errorMessage !== null){
+      $('.error').html(`<div>${store.errorMessage}</div>`);
+    }
+
     // insert that HTML into the DOM
     $('.js-shopping-list').html(shoppingListItemsString);
   }
@@ -66,7 +71,10 @@ const shoppingList = (function(){
       event.preventDefault();
       const newItemName = $('.js-shopping-list-entry').val();
       $('.js-shopping-list-entry').val('');
-      api.createItem(newItemName, (item) =>{
+      api.createItem(newItemName, (error) =>{
+        store.setErrorMessage(error.responseJSON.message);
+        render();
+      },(item) =>{
         store.addItem(item);
         render();
       });
@@ -82,8 +90,12 @@ const shoppingList = (function(){
   function handleItemCheckClicked() {
     $('.js-shopping-list').on('click', '.js-item-toggle', event => {
       const id = getItemIdFromElement(event.currentTarget);
-      store.findAndToggleChecked(id);
-      render();
+      const item = store.findById(id);
+      const oppositeChecked = {checked: !item.checked};
+      api.updateItem(id, oppositeChecked, function(){
+        store.findAndUpdate(id, oppositeChecked);
+        render();
+      });
     });
   }
   
@@ -93,9 +105,13 @@ const shoppingList = (function(){
       // get the index of the item in store.items
       const id = getItemIdFromElement(event.currentTarget);
       // delete the item
-      store.findAndDelete(id);
-      // render the updated shopping list
-      render();
+      api.deleteItem(id, (error) => {
+        store.setErrorMessage(error.responseJSON.message);
+        render();
+      },function(){
+        store.findAndDelete(id);
+        render();
+      });
     });
   }
   
@@ -104,9 +120,14 @@ const shoppingList = (function(){
       event.preventDefault();
       const id = getItemIdFromElement(event.currentTarget);
       const itemName = $(event.currentTarget).find('.shopping-item').val();
-      store.findAndUpdateName(id, itemName);
-      store.setItemIsEditing(id, false);
-      render();
+      const newName = {name: itemName};
+      api.updateItem(id,newName,(error) => {
+        store.setErrorMessage(error.responseJSON.message);
+        render();
+      }, function(){
+        store.findAndUpdate(id, newName);
+        render();
+      });
     });
   }
   
