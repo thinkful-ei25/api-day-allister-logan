@@ -21,8 +21,20 @@ const api = (function(){
     });
   }
 
+  function updateItem(id, updateData, callback){
+    let updateItem = JSON.stringify(updateData);
+    $.ajax({
+      url: `${BASE_URL}/items/${id}`,
+      method: 'PATCH',
+      contentType: 'application/json',
+      data: updateItem,
+      success: callback
+    });
+  }
+
   return{
     getItems,
-    createItem
+    createItem,
+    updateItem
   };
 }());
